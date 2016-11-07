@@ -37,6 +37,9 @@ getInput(["| i-R i-C", "s-maze[R]|"], main);
 function main() {
     // log(maze);
     g = inputToGraph();
+    dijkstraCompute(g, "1,0");
+    path = dijkstraShortestPathTo(g, "6,7");
+    log(path.join("\n"));
 }
 
 function inputToGraph(){
@@ -72,11 +75,11 @@ function inputToGraph(){
 
     // Construire le graphe
     graph = buildGraph(nodes);
-    log(graph["4,6"].adjacent);
+    return graph;
 }
 
 function getNodeName(r, c) {
-    return (r + 1) + "," + (c + 1);
+    return (r) + "," + (c);
 }
 
 ///////////////////////////////////////////////////
@@ -98,7 +101,8 @@ function buildGraph(links) {
         if(links.hasOwnProperty(key)) {
             graph[key] = {
                 name: key,
-                adjacent: []
+                adjacent: [],
+                data: {}
             }
         }
     }
@@ -109,6 +113,95 @@ function buildGraph(links) {
     }
     
     return graph;
+}
+
+function dijkstraCompute(graph, start) {
+    // graph : a buildGraph result
+    // start : the node name to begin with
+
+    /*
+    push startNode onto openList
+    while(openList is not empty) {
+        currentNode = openList.pop
+        push currentNode onto closedList
+        foreach neighbor of currentNode {
+            if neighbor is not in openList {
+                   save distance + previous node (= currentNode) then save the current parent
+                   add neighbor to openList
+            }
+            if neighbor is in openList but the current g is better than previous g {
+                   save distance + previous node (= currentNode) then save the current parent
+            }
+        }
+    }
+    */
+
+    // Init/resert Dijkstra data
+    for(var key in graph) {
+        if(graph.hasOwnProperty(key)) {
+            graph[key].data.dijkstra = {
+                distance: Infinity,
+                parent: null
+            }
+        }
+    }
+
+    var openList   = []; // nodes to visit
+    var closedList = []; // visited nodes
+    openList.push(graph[start]);
+    graph[start].data.dijkstra.distance = 0;
+
+    while(openList.length > 0) {
+        var currentNode = openList.pop();
+        closedList.push(currentNode);
+
+        for(var i=0; i<currentNode.adjacent.length;i++) {
+            var neighbor = currentNode.adjacent[i];
+            if(closedList.indexOf(neighbor) != -1) {
+                // not a valid node to process, skip to next neighbor
+                continue;
+            }
+
+            // `distance` is the shortest distance from start to current node, we need to check if
+            //   the path we have arrived at this neighbor is the shortest one we have seen yet
+            var distance = currentNode.data.dijkstra.distance + 1; // 1 is the distance from a node to it's neighbor
+            var distanceIsBest = false;
+
+            if(openList.indexOf(neighbor) == -1) {
+                // This the the first time we have arrived at this node, it must be the best
+
+                distanceIsBest = true;
+                openList.push(neighbor);
+            }
+            else if(distance < neighbor.data.dijkstra.distance) {
+                // We have already seen the node, but last time it had a worse g (distance from start)
+                distanceIsBest = true;
+            }
+
+            if(distanceIsBest) {
+                // Found an optimal (so far) path to this node.  Store info on how we got here and
+                //  just how good it really is...
+                neighbor.data.dijkstra.parent = currentNode;
+                neighbor.data.dijkstra.distance = distance;
+            }
+        }
+    }
+}
+
+function dijkstraShortestPathTo(graph, end) {
+    // graph : a dijkstraCompute result
+    // end : the node name to go to. Start has been defined in dijkstraCompute
+
+    var currentNode = graph[end];
+    var path = [];
+
+    while (currentNode != null) {
+        path.push(currentNode);
+
+        currentNode = currentNode.data.dijkstra.parent;
+    }
+
+    return path.reverse().map(x => x.name);
 }
 
 //////////////// end of graph /////////////////
@@ -217,7 +310,7 @@ function _convertStr(str, type, split) {
 
 ///////////////////////////////////////////////////
 //////////////////// shortcuts ////////////////////
-function c (o) {
+function log (o) {
     console.log(o);
 }
 
