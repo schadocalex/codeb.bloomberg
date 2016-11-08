@@ -37,14 +37,16 @@ getInput(["| i-R i-C", "s-maze[R]|"], main);
 function main() {
     // log(maze);
     g = inputToGraph();
-    dijkstraCompute(g, "1,0");
-    path = dijkstraShortestPathTo(g, "6,7");
+    // dijkstraCompute(g, "1,0");
+    // path = dijkstraShortestPathTo(g, (R - 2) + "," + (C - 1));
+    dfsCompute(g, "1,0");
+    path = dfsShortestPathTo(g, (R - 2) + "," + (C - 1));
     log(path.join("\n"));
 }
 
 function inputToGraph(){
     // TODO : ajouter un champs info diverses
-    // préparer noeuds :
+    // preparer noeuds :
     /*
     {
         "11" : ["12, 13"],
@@ -199,6 +201,56 @@ function dijkstraShortestPathTo(graph, end) {
         path.push(currentNode);
 
         currentNode = currentNode.data.dijkstra.parent;
+    }
+
+    return path.reverse().map(x => x.name);
+}
+
+function dfsCompute(graph, start) {
+    // graph : a buildGraph result
+    // start : the node name to begin with
+
+    // Init/resert DFS data
+    for(var key in graph) {
+        if(graph.hasOwnProperty(key)) {
+            graph[key].data.dfs = {
+                parent: null
+            }
+        }
+    }
+
+    var openList   = []; // nodes to visit
+    var closedList = []; // visited nodes
+    openList.push(graph[start]);
+
+    while(openList.length > 0) {
+        var currentNode = openList.pop();
+        closedList.push(currentNode);
+
+        for(var i=0; i<currentNode.adjacent.length;i++) {
+            var neighbor = currentNode.adjacent[i];
+            if(closedList.indexOf(neighbor) != -1) {
+                // not a valid node to process, skip to next neighbor
+                continue;
+            }
+
+            openList.push(neighbor);
+            neighbor.data.dfs.parent = currentNode;
+        }
+    }
+}
+
+function dfsShortestPathTo(graph, end) {
+    // graph : a dfsCompute result
+    // end : the node name to go to. Start has been defined in dijkstraCompute
+
+    var currentNode = graph[end];
+    var path = [];
+
+    while (currentNode != null) {
+        path.push(currentNode);
+
+        currentNode = currentNode.data.dfs.parent;
     }
 
     return path.reverse().map(x => x.name);
