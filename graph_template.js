@@ -40,6 +40,7 @@ function main() {
     // dijkstraCompute(g, "1,0");
     // path = dijkstraShortestPathTo(g, (R - 2) + "," + (C - 1));
     dfsCompute(g, "1,0");
+    // log(g);
     path = dfsShortestPathTo(g, (R - 2) + "," + (C - 1));
     log(path.join("\n"));
 }
@@ -55,19 +56,23 @@ function inputToGraph(){
     */
     nodes = {}
     travalable = "_"
-    neighboors = [[-1, 0], [0, -1], [+1, 0], [0, +1]];
+    neighbors = [[-1, 0], [0, -1], [+1, 0], [0, +1]];
     for (var r = 0; r < maze.length; r++) {
         for (var c = 0; c < maze[r].length; c++) {
             if (maze[r][c] == travalable) {
                 var nodeName = getNodeName(r, c);
                 nodes[nodeName] = []
 
-                for (var i = 0; i < neighboors.length; i++) {
-                    var neighboor = {};
-                    neighboor.r = r + neighboors[i][0];
-                    neighboor.c = c + neighboors[i][1];
-                    if (maze[neighboor.r][neighboor.c] == travalable) {
-                        nodes[nodeName].push(getNodeName(neighboor.r, neighboor.c));
+                for (var i = 0; i < neighbors.length; i++) {
+                    var neighbor = {};
+                    neighbor.r = r + neighbors[i][0];
+                    neighbor.c = c + neighbors[i][1];
+                    if (maze[neighbor.r][neighbor.c] == travalable) {
+                        // nodes[nodeName].push( {
+                        //     name: getNodeName(neighbor.r, neighbor.c),
+                        //     weight: 1
+                        // });
+                        nodes[nodeName].push( getNodeName(neighbor.r, neighbor.c) );
                     }
                 }
             }
@@ -111,15 +116,17 @@ function buildGraph(links) {
 
     // Add links
     for(var key in links) {
-        graph[key].adjacent = links[key].map(x => graph[x])
+        // graph[key].adjacent = links[key].map(x => ({ name: graph[x.name].name, weight: graph[x.name].weight }));
+        graph[key].adjacent = links[key].map(x => graph[x]);
     }
     
     return graph;
 }
 
-function dijkstraCompute(graph, start) {
+function dijkstraCompute(graph, start/*, heuristic*/) {
     // graph : a buildGraph result
     // start : the node name to begin with
+    // heuristic : a function(nodeName) that gives an heuristic of the distance to the goal. Return const to use A* as Dijkstra
 
     /*
     push startNode onto openList
@@ -209,47 +216,44 @@ function dijkstraShortestPathTo(graph, end) {
 function dfsCompute(graph, start) {
     // graph : a buildGraph result
     // start : the node name to begin with
+    // end : the node name to begin with
 
-    // Init/resert DFS data
+    // Init/reset DFS data
     for(var key in graph) {
         if(graph.hasOwnProperty(key)) {
             graph[key].data.dfs = {
-                parent: null
+                visited: false,
+                parent: null // will be a node reference
             }
         }
     }
 
-    var openList   = []; // nodes to visit
-    var closedList = []; // visited nodes
-    openList.push(graph[start]);
+    dfsVisitNode(graph[start]);
+}
 
-    while(openList.length > 0) {
-        var currentNode = openList.pop();
-        closedList.push(currentNode);
+function dfsVisitNode(node){
+    // Mark node as visited
+    node.data.dfs.visited = true;
 
-        for(var i=0; i<currentNode.adjacent.length;i++) {
-            var neighbor = currentNode.adjacent[i];
-            if(closedList.indexOf(neighbor) != -1) {
-                // not a valid node to process, skip to next neighbor
-                continue;
-            }
-
-            openList.push(neighbor);
-            neighbor.data.dfs.parent = currentNode;
+    // For all neighbors
+    for(var i=0; i<node.adjacent.length;i++) {
+        var neighbor = node.adjacent[i];
+        if(!neighbor.data.dfs.visited) {
+            neighbor.data.dfs.parent = node;
+            dfsVisitNode(neighbor);
         }
     }
 }
 
 function dfsShortestPathTo(graph, end) {
     // graph : a dfsCompute result
-    // end : the node name to go to. Start has been defined in dijkstraCompute
+    // end : the node name to go to. Start has been defined in dfsCompute
 
     var currentNode = graph[end];
     var path = [];
 
     while (currentNode != null) {
         path.push(currentNode);
-
         currentNode = currentNode.data.dfs.parent;
     }
 
