@@ -37,11 +37,14 @@ getInput(["| i-R i-C", "s-maze[R]|"], main);
 function main() {
     // log(maze);
     g = inputToGraph();
-    // dijkstraCompute(g, "1,0");
-    // path = dijkstraShortestPathTo(g, (R - 2) + "," + (C - 1));
-    dfsCompute(g, "1,0");
+
+    astarCompute(g, "1,0", name => distance(name.split(","), [R-2, C-1]));
+    path = astarShortestPathTo(g, (R - 2) + "," + (C - 1));
+    
+    // dfsCompute(g, "1,0");
+    // path = dfsShortestPathTo(g, (R - 2) + "," + (C - 1));
+
     // log(g);
-    path = dfsShortestPathTo(g, (R - 2) + "," + (C - 1));
     log(path.join("\n"));
 }
 
@@ -68,11 +71,11 @@ function inputToGraph(){
                     neighbor.r = r + neighbors[i][0];
                     neighbor.c = c + neighbors[i][1];
                     if (maze[neighbor.r][neighbor.c] == travalable) {
-                        // nodes[nodeName].push( {
-                        //     name: getNodeName(neighbor.r, neighbor.c),
-                        //     weight: 1
-                        // });
-                        nodes[nodeName].push( getNodeName(neighbor.r, neighbor.c) );
+                        nodes[nodeName].push( {
+                            name: getNodeName(neighbor.r, neighbor.c),
+                            weight: 1 // if unweighted graph
+                        });
+                        // nodes[nodeName].push( getNodeName(neighbor.r, neighbor.c) );
                     }
                 }
             }
@@ -94,7 +97,7 @@ function getNodeName(r, c) {
 /*
 graph {
     node1: {
-        adjacent: [node2, ...]
+        adjacent: [ { node: node2, weight: 12}, ...]
     }
     ...
 }
@@ -116,40 +119,47 @@ function buildGraph(links) {
 
     // Add links
     for(var key in links) {
-        // graph[key].adjacent = links[key].map(x => ({ name: graph[x.name].name, weight: graph[x.name].weight }));
-        graph[key].adjacent = links[key].map(x => graph[x]);
+        graph[key].adjacent = links[key].map(x => ({ node: graph[x.name], weight: graph[x.name].weight }));
+        // graph[key].adjacent = links[key].map(x => graph[x]);
     }
     
     return graph;
 }
 
-function dijkstraCompute(graph, start/*, heuristic*/) {
+function astarCompute(graph, start, heuristic) {
     // graph : a buildGraph result
     // start : the node name to begin with
     // heuristic : a function(nodeName) that gives an heuristic of the distance to the goal. Return const to use A* as Dijkstra
 
     /*
+    g : distance from start
+    h : heuristic score
+    f : g + h
+
     push startNode onto openList
     while(openList is not empty) {
-        currentNode = openList.pop
-        push currentNode onto closedList
+        currentNode = find lowest f in openList
+        // if currentNode is final, return the successful path
+        push currentNode onto closedList and remove from openList
         foreach neighbor of currentNode {
             if neighbor is not in openList {
-                   save distance + previous node (= currentNode) then save the current parent
-                   add neighbor to openList
+                save g, h, and f then save the current parent
+                add neighbor to openList
             }
             if neighbor is in openList but the current g is better than previous g {
-                   save distance + previous node (= currentNode) then save the current parent
+                save g and f, then save the current parent
             }
         }
     }
     */
 
-    // Init/resert Dijkstra data
+    // Init/resert astar data
     for(var key in graph) {
         if(graph.hasOwnProperty(key)) {
-            graph[key].data.dijkstra = {
+            graph[key].data.astar = {
                 distance: Infinity,
+                h: Infinity,
+                f: Infinity,
                 parent: null
             }
         }
@@ -158,14 +168,22 @@ function dijkstraCompute(graph, start/*, heuristic*/) {
     var openList   = []; // nodes to visit
     var closedList = []; // visited nodes
     openList.push(graph[start]);
-    graph[start].data.dijkstra.distance = 0;
+    graph[start].data.astar.distance = 0;
 
     while(openList.length > 0) {
-        var currentNode = openList.pop();
+        var currentNode = openList.sort(function (a, b) {
+            if (a.data.astar.f > b.data.astar.f) {
+                return 1;
+            } else if (a.data.astar.f < b.data.astar.f) {
+                return -1;
+            } else /* a.data.astar.f == b.data.astar.f */ {
+                return 0;
+            }
+        }).shift();
         closedList.push(currentNode);
 
         for(var i=0; i<currentNode.adjacent.length;i++) {
-            var neighbor = currentNode.adjacent[i];
+            var neighbor = currentNode.adjacent[i].node;
             if(closedList.indexOf(neighbor) != -1) {
                 // not a valid node to process, skip to next neighbor
                 continue;
@@ -173,16 +191,17 @@ function dijkstraCompute(graph, start/*, heuristic*/) {
 
             // `distance` is the shortest distance from start to current node, we need to check if
             //   the path we have arrived at this neighbor is the shortest one we have seen yet
-            var distance = currentNode.data.dijkstra.distance + 1; // 1 is the distance from a node to it's neighbor
+            var distance = currentNode.data.astar.distance + currentNode.adjacent[i].distance;
             var distanceIsBest = false;
 
             if(openList.indexOf(neighbor) == -1) {
                 // This the the first time we have arrived at this node, it must be the best
 
                 distanceIsBest = true;
+                neighbor.data.astar.h = heuristic(neighbor.name);
                 openList.push(neighbor);
             }
-            else if(distance < neighbor.data.dijkstra.distance) {
+            else if(distance < neighbor.data.astar.distance) {
                 // We have already seen the node, but last time it had a worse g (distance from start)
                 distanceIsBest = true;
             }
@@ -190,27 +209,28 @@ function dijkstraCompute(graph, start/*, heuristic*/) {
             if(distanceIsBest) {
                 // Found an optimal (so far) path to this node.  Store info on how we got here and
                 //  just how good it really is...
-                neighbor.data.dijkstra.parent = currentNode;
-                neighbor.data.dijkstra.distance = distance;
+                neighbor.data.astar.parent = currentNode;
+                neighbor.data.astar.distance = distance;
+                neighbor.data.astar.f = distance + neighbor.data.astar.h;
             }
         }
     }
 }
 
-function dijkstraShortestPathTo(graph, end) {
-    // graph : a dijkstraCompute result
-    // end : the node name to go to. Start has been defined in dijkstraCompute
+function astarShortestPathTo(graph, end) {
+    // graph : a astarCompute result
+    // end : the node name to go to. Start has been defined in astarCompute
 
     var currentNode = graph[end];
     var path = [];
 
     while (currentNode != null) {
-        path.push(currentNode);
+        path.unshift(currentNode);
 
-        currentNode = currentNode.data.dijkstra.parent;
+        currentNode = currentNode.data.astar.parent;
     }
 
-    return path.reverse().map(x => x.name);
+    return path.map(x => x.name);
 }
 
 function dfsCompute(graph, start) {
@@ -237,7 +257,7 @@ function dfsVisitNode(node){
 
     // For all neighbors
     for(var i=0; i<node.adjacent.length;i++) {
-        var neighbor = node.adjacent[i];
+        var neighbor = node.adjacent[i].node;
         if(!neighbor.data.dfs.visited) {
             neighbor.data.dfs.parent = node;
             dfsVisitNode(neighbor);
@@ -253,11 +273,11 @@ function dfsShortestPathTo(graph, end) {
     var path = [];
 
     while (currentNode != null) {
-        path.push(currentNode);
+        path.unshift(currentNode);
         currentNode = currentNode.data.dfs.parent;
     }
 
-    return path.reverse().map(x => x.name);
+    return path.map(x => x.name);
 }
 
 //////////////// end of graph /////////////////
@@ -376,6 +396,10 @@ function removeArrayElem (array, elem){
     if (index > -1) {
         array.splice(index, 1);
     }
+}
+
+function distance(v1, v2){
+    return Math.sqrt((v1[0] - v2[0]) * (v1[0] - v2[0]) + (v1[1] - v2[1]) * (v1[1] - v2[1]));
 }
 
 //////////////// end of shortcuts /////////////////
