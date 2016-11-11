@@ -119,7 +119,7 @@ function buildGraph(links) {
 
     // Add links
     for(var key in links) {
-        graph[key].adjacent = links[key].map(x => ({ node: graph[x.name], weight: graph[x.name].weight }));
+        graph[key].adjacent = links[key].map(x => ({ node: graph[x.name], weight: x.weight }));
         // graph[key].adjacent = links[key].map(x => graph[x]);
     }
     
@@ -189,29 +189,24 @@ function astarCompute(graph, start, heuristic) {
                 continue;
             }
 
-            // `distance` is the shortest distance from start to current node, we need to check if
-            //   the path we have arrived at this neighbor is the shortest one we have seen yet
-            var distance = currentNode.data.astar.distance + currentNode.adjacent[i].distance;
-            var distanceIsBest = false;
+            var distance = currentNode.data.astar.distance + currentNode.adjacent[i].weight;
 
-            if(openList.indexOf(neighbor) == -1) {
-                // This the the first time we have arrived at this node, it must be the best
-
-                distanceIsBest = true;
-                neighbor.data.astar.h = heuristic(neighbor.name);
-                openList.push(neighbor);
-            }
-            else if(distance < neighbor.data.astar.distance) {
-                // We have already seen the node, but last time it had a worse g (distance from start)
-                distanceIsBest = true;
-            }
-
-            if(distanceIsBest) {
+            if(distance < neighbor.data.astar.distance) {
                 // Found an optimal (so far) path to this node.  Store info on how we got here and
                 //  just how good it really is...
-                neighbor.data.astar.parent = currentNode;
+
+                if(openList.indexOf(neighbor) == -1) {
+                    neighbor.data.astar.h = heuristic(neighbor.name);
+                    openList.push(neighbor);
+                }
+
+                // `distance` is the shortest distance from start to current node, we need to check if
+                //   the path we have arrived at this neighbor is the shortest one we have seen yet
                 neighbor.data.astar.distance = distance;
+
+                neighbor.data.astar.parent = currentNode;
                 neighbor.data.astar.f = distance + neighbor.data.astar.h;
+
             }
         }
     }
