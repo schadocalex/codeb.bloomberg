@@ -47,10 +47,12 @@ function main() {
 
     while(nodesInPath.size > 0) {
         let node = nodesInPath.values().next().value;
-        let path1 = getPath(dijkstra(nodes, node));
+        dijkstra(nodes, node);
+        let path1 = getPath(_min(nodes, "dist"));
         let othersNode = _difference(nodes, path1);
         othersNode.push(node);
-        let path2 = getPath(dijkstra(othersNode, node));
+        dijkstra(othersNode, node);
+        let path2 = getPath(_min(othersNode, "dist"));
         path2.shift();
 
         let path = path1.concat(path2);

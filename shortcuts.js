@@ -1,5 +1,6 @@
 ///////////////////////////////////////////////////
 //////////////////// shortcuts ////////////////////
+
 function c (o) {
     console.log(o);
 }
@@ -15,21 +16,41 @@ function removeArrayElem (array, elem){
 /**
  * Get the minimum value of an array. If prop is defined, get the minimum value by the prop.
  * Usage:
- * min([1, 2, 3, 4]) // 1
- * min([{val: 1}, {val: 2}, {val: 3}, {val: 4}], "val") // {val: 1}
+ * _min([1, 2, 3, 4]) // 1
+ * _min([{val: 1}, {val: 2}, {val: 3}, {val: 4}], "val") // {val: 1}
  *
- * @param {*[]} arr - The first array
- * @param {*[]} prop - The property shorthand
- * @returns {*[]}
+ * @param {*[]|Set} arr - The first array
+ * @param {string} prop - The property shorthand
+ * @returns {*}
  */
 function _min(arr, prop) {
     let min = null;
     for(let el of arr) {
-        if(min === null || (prop != null ? el[prop] < min[prop] : el < prop)) {
+        if(min === null || (!prop ? el < prop : el[prop] < min[prop])) {
             min = el;
         }
     }
     return min;
+}
+
+/**
+ * Get the maximum value of an array. If prop is defined, get the maximum value by the prop.
+ * Usage:
+ * _max([1, 2, 3, 4]) // 4
+ * _max([{val: 1}, {val: 2}, {val: 3}, {val: 4}], "val") // {val: 4}
+ *
+ * @param {*[]|Set} arr - The first array
+ * @param {string} prop - The property shorthand
+ * @returns {*}
+ */
+function _max(arr, prop) {
+    let max = null;
+    for(let el of arr) {
+        if(max === null || (!prop ? el > prop : el[prop] > max[prop])) {
+            max = el;
+        }
+    }
+    return max;
 }
 
 /**

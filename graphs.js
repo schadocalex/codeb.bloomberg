@@ -1,5 +1,10 @@
+///////////////////////////////////////////////////
+///////////////////// graphs //////////////////////
+
 /**
- * Disjktra algorythm. Set "dist" and "parent" properties on all nodes. Default values are Infinity and null.
+ * https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
+ *
+ * Dijkstra algorithm. Set "dist" and "parent" properties on all nodes. Default values are Infinity and null.
  * Usage :
  * disjktra(nodes, nodes[nodesStartIndex])
  * getPath(disjktra(nodes, nodes[nodesStartIndex], nodes[nodesEndIndex]))
@@ -7,44 +12,96 @@
  *
  * @param {Node[]} nodes - Array of nodes with the following properties: neighbors, weight (Map)
  * @param {Node} source - The node to start from
- * @param {Node} [target] - If dijkstra choose this node, it will stop
+ * @param {Node} [target] - If it find this node, it will stop
  * @returns {Node} - The target if defined and found, else the farest node.
- * @constructor
  */
 function dijkstra(nodes, source, target) {
-    let Q = new Set();
+    let openNodes= new Set();
+    let nodesToDiscover = new Set();
 
     nodes.forEach(v => {
         v.dist = Infinity;
         v.parent = null;
-        Q.add(v);
+        openNodes.add(v);
     });
 
     source.dist = 0;
+    nodesToDiscover.add(source);
 
-    let min = source;
+    let max = source;
 
-    while(Q.size > 0) {
-        let u = _min(Q, "dist");
-        if(target && target === u) {
+    while(nodesToDiscover.size > 0) {
+        let u = _min(nodesToDiscover, "dist");
+        if(u === target) {
             return target;
         }
-        Q.delete(u);
+        nodesToDiscover.delete(u);
+        openNodes.delete(u);
         for(let v of u.neighbors) {
-            if(Q.has(v)) {
+            if(openNodes.has(v)) {
+                nodesToDiscover.add(v);
                 let alt = u.dist + u.weight.get(v);
                 if (alt < v.dist) {
                     v.dist = alt;
                     v.parent = u;
-                    if (v.dist < min.dist) {
-                        min = v;
+                    if (v.dist > max.dist) {
+                        max = v;
                     }
                 }
             }
         }
     }
 
-    return min;
+    return max;
+}
+
+/**
+ * https://en.wikipedia.org/wiki/Depth-first_search#Pseudocode
+ *
+ * DFS (Deep First Search) algorithm. Set "dist" and "parent" properties on all nodes. Default values are Infinity and null.
+ * Usage :
+ * dfs(nodes, nodes[nodesStartIndex])
+ * getPath(dfs(nodes, nodes[nodesStartIndex], nodes[nodesEndIndex]))
+ * getPath(dfs(nodes, nodes[nodesStartIndex], nodes[nodesEndIndex]))
+ *
+ * @param {Node[]} nodes - Array of nodes with the following properties: neighbors
+ * @param {Node} source - The node to start from
+ * @param {Node} [target] - If it find this node, it will stop
+ * @returns {Node} - The target if defined and found, else the farest node.
+ */
+function dfs(nodes, source, target) {
+    nodes.forEach(node => {
+        node.dist = Infinity;
+        node.parent = null;
+    });
+
+    const S = [];
+
+    S.push(source);
+    source.dist = 0;
+
+    let max = source;
+
+    while(S.length > 0) {
+        let v = S.pop();
+        for(let w of v.neighbors) {
+            if(w.dist === Infinity) {
+                w.dist = v.dist + 1;
+                w.parent = v;
+
+                if(w === target) {
+                    return target;
+                }
+                if(w.dist > max.dist) {
+                    max = w;
+                }
+
+                S.push(w);
+            }
+        }
+    }
+
+    return max;
 }
 
 /**
@@ -70,3 +127,6 @@ function getPath(node, prop = "parent") {
     }
     return path;
 }
+
+////////////////// end of graphs //////////////////
+///////////////////////////////////////////////////
