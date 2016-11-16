@@ -14,6 +14,7 @@
  * @param {Node} source - The node to start from
  * @param {Node} [target] - If it find this node, it will stop
  * @returns {Node} - The target if defined and found, else the farest node.
+ * @need _min
  */
 function dijkstra(nodes, source, target) {
     let openNodes= new Set();

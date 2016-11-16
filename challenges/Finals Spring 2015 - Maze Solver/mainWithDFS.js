@@ -44,6 +44,7 @@ getInput(["| i-R i-C", "s-graph[R]|"], main);
 function main() {
     let nodes = inputToGraph();
     let path = getPath(dfs(nodes, graph[1][0], graph[R-2][C-1]));
+    // let path = getPath(dijkstra(nodes, graph[1][0], graph[R-2][C-1]));
     console.log(path.map(el => el.y + "," + el.x).join("\n"));
 }
 
