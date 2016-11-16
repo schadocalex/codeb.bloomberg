@@ -84,7 +84,7 @@ Set.prototype.shift = Set.prototype.pop;
 
 Set.prototype.map = function(fn) {
     let arr = [];
-    this.forEach((el) => arr.push(fn(el)));
+    this.forEach((el, i, arr) => arr.push(fn(el, i, arr)));
     return arr;
 };
 
