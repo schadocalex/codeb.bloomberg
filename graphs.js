@@ -17,17 +17,15 @@
  * @need _min
  */
 function dijkstra(nodes, source, target) {
-    let openNodes= new Set();
     let nodesToDiscover = new Set();
 
-    nodes.forEach(v => {
-        v.dist = Infinity;
-        v.parent = null;
-        openNodes.add(v);
-    });
+    for(let u of nodes) {
+        u.dist = Infinity;
+        u.parent = null;
+        nodesToDiscover.add(u);
+    }
 
     source.dist = 0;
-    nodesToDiscover.add(source);
 
     let max = source;
 
@@ -37,23 +35,61 @@ function dijkstra(nodes, source, target) {
             return target;
         }
         nodesToDiscover.delete(u);
-        openNodes.delete(u);
         for(let v of u.neighbors) {
-            if(openNodes.has(v)) {
-                nodesToDiscover.add(v);
-                let alt = u.dist + u.weight.get(v);
-                if (alt < v.dist) {
-                    v.dist = alt;
-                    v.parent = u;
-                    if (v.dist > max.dist) {
-                        max = v;
-                    }
+            // if(nodesToDiscover.has(v)) si on veut un seul passage, on regarde si on a pas déjà choisi ce noeud
+            let alt = u.dist + u.weight.get(v);
+            if (alt < v.dist) {
+                v.dist = alt;
+                v.parent = u;
+                if (v.dist > max.dist) {
+                    max = v;
                 }
             }
         }
     }
 
     return max;
+}
+
+/**
+ * Idem que dijkstra mais plus lent et gère les poids négatifs
+ * @param nodes
+ * @param source
+ * @param target
+ * @returns {number}
+ */
+function bellmanford(nodes, source) {
+    for(let u of nodes) {
+        u.dist = Infinity;
+        u.parent = null;
+    }
+
+    source.dist = 0;
+    let min = source;
+
+    for(let i = 1; i < nodes.length; i++) {
+        for(let u of nodes) {
+            for(let v of u.neighbors) {
+                if(u.dist - 1 < v.dist) {
+                    v.dist = u.dist - 1;
+                    v.parent = u;
+                    if (v.dist < min.dist) {
+                        min = v;
+                    }
+                }
+            }
+        }
+    }
+
+    for(let u of nodes) {
+        for(let v of u.neighbors) {
+            if(u.dist - 1 < v.dist) {
+                console.log("Graph contains a negative-weight cycle");
+            }
+        }
+    }
+
+    return -min.dist;
 }
 
 /**
@@ -130,10 +166,10 @@ function astar(nodes, source, heuristic = (n) => {return 0;}, target) {
  * @returns {Node} - The target if defined and found, else the farest node.
  */
 function dfs(nodes, source, target) {
-    nodes.forEach(node => {
+    for(let node of nodes) {
         node.dist = Infinity;
         node.parent = null;
-    });
+    }
 
     const S = [];
 
