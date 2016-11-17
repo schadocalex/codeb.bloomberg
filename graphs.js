@@ -57,6 +57,65 @@ function dijkstra(nodes, source, target) {
 }
 
 /**
+ * https://en.wikipedia.org/wiki/A*_search_algorithm#Pseudocode
+ *
+ * A* algorithm. Set "dist" and "parent" properties on all nodes. Default values are Infinity and null.
+ * Usage :
+ * astar(nodes, nodes[nodesStartIndex])
+ * astar(nodes, nodes[nodesStartIndex], (n) => { R - n.y + C - n.x; })
+ * getPath(astar(nodes, nodes[nodesStartIndex], (n) => { R - n.y + C - n.x; }, nodes[nodesEndIndex]))
+ *
+ * @param {Node[]} nodes - Array of nodes with the following properties: neighbors, weight (Map)
+ * @param {Node} source - The node to start from
+ * @param {Node} [heuristic] - Consistent heuristic function that takes a node as argument.
+ * @param {Node} [target] - If it finds this node, it will stop
+ * @returns {Node} - The target if defined and found, else the furthest node.
+ */
+function astar(nodes, source, heuristic = (n) => {return 0;}, target) {
+    let openNodes = new Set();      // queue of nodes to be computed
+    let closedNodes = new Set();    // list of node for which we are sure of our result
+
+    nodes.forEach(v => {
+        v.dist = Infinity;
+        v.heuristic = Infinity;
+        v.score = Infinity;
+        v.parent = null;
+    });
+
+    source.dist = 0;
+    openNodes.add(source);
+
+    let max = source;
+
+    while(openNodes.size > 0) {
+        let u = _min(openNodes, "score");
+        if(u === target) {
+            return target;
+        }
+        openNodes.delete(u);
+        closedNodes.add(u);
+        for(let v of u.neighbors) {
+            if(!closedNodes.has(v)) {
+                let alt = u.dist + u.weight.get(v);
+                if (alt < v.dist) {
+                    openNodes.add(v);
+
+                    v.dist = alt;
+                    v.heuristic = heuristic(v);
+                    v.score = v.dist + v.heuristic;
+                    v.parent = u;
+                    if (v.dist > max.dist) {
+                        max = v;
+                    }
+                }
+            }
+        }
+    }
+
+    return max;
+}
+
+/**
  * https://en.wikipedia.org/wiki/Depth-first_search#Pseudocode
  *
  * DFS (Deep First Search) algorithm. Set "dist" and "parent" properties on all nodes. Default values are Infinity and null.

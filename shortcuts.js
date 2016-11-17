@@ -70,5 +70,28 @@ function _difference(arr, arr2) {
     return [...res];
 }
 
+
+Set.prototype.first = function() {
+    return this.values().next().value;
+};
+
+Set.prototype.pop = function() {
+    let el = this.first();
+    this.delete(el);
+    return el;
+};
+Set.prototype.shift = Set.prototype.pop;
+
+Set.prototype.map = function(fn) {
+    let arr = [];
+    this.forEach((el, i, arr) => arr.push(fn(el, i, arr)));
+    return arr;
+};
+
+Map.prototype.first = Set.prototype.first;
+Map.prototype.pop = Set.prototype.pop;
+Map.prototype.shift = Set.prototype.pop;
+Map.prototype.map = Set.prototype.map;
+
 //////////////// end of shortcuts /////////////////
 ///////////////////////////////////////////////////
