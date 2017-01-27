@@ -52,7 +52,7 @@ function dijkstra(nodes, source, target) {
 }
 
 /**
- * Idem que dijkstra mais plus lent et gère les poids négatifs
+ * Idem que dijkstra mais plus lent et gere les poids negatifs
  * @param nodes
  * @param source
  * @param target
