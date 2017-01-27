@@ -89,7 +89,7 @@ function bellmanford(nodes, source) {
         }
     }
 
-    return -min.dist;
+    return min;
 }
 
 /**

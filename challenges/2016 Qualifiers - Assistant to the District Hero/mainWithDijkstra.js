@@ -53,37 +53,36 @@ function main() {
         node.neighbors = nodes.filter(node2 => node !== node2 && node2.x >= node.x && node2.y >= node.y);
     });
 
-    console.log(-dijkstra(nodes, source).dist);
+    console.log(-bellmanford(nodes, source).dist);
 }
 
-function dijkstra(nodes, source, target) {
-    let nodesToDiscover = new Set();
-
-    nodes.forEach(v => {
-        v.dist = Infinity;
-        v.parent = null;
-    });
+function bellmanford(nodes, source) {
+    for(let u of nodes) {
+        u.dist = Infinity;
+        u.parent = null;
+    }
 
     source.dist = 0;
-    nodesToDiscover.add(source);
-
     let min = source;
 
-    while(nodesToDiscover.size > 0) {
-        let u = _min(nodesToDiscover, "dist");
-        if(u === target) {
-            return target;
-        }
-        nodesToDiscover.delete(u);
-        for(let v of u.neighbors) {
-            nodesToDiscover.add(v);
-            let alt = u.dist - 1;
-            if (alt < v.dist) {
-                v.dist = alt;
-                v.parent = u.x + " " + u.y;
-                if (v.dist < min.dist) {
-                    min = v;
+    for(let i = 1; i < nodes.length; i++) {
+        for(let u of nodes) {
+            for(let v of u.neighbors) {
+                if(u.dist - 1 < v.dist) {
+                    v.dist = u.dist - 1;
+                    v.parent = u;
+                    if (v.dist < min.dist) {
+                        min = v;
+                    }
                 }
+            }
+        }
+    }
+
+    for(let u of nodes) {
+        for(let v of u.neighbors) {
+            if(u.dist - 1 < v.dist) {
+                console.log("Graph contains a negative-weight cycle");
             }
         }
     }
