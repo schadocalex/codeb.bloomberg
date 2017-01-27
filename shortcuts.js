@@ -93,5 +93,15 @@ Map.prototype.pop = Set.prototype.pop;
 Map.prototype.shift = Set.prototype.pop;
 Map.prototype.map = Set.prototype.map;
 
+
+// Caution ! Does return a value, doesn't modify 'this'
+String.prototype.reverse = function () {
+    return this.split("").reverse().join("");
+}
+
+String.prototype.isPalindrome = function() {
+    return this == this.reverse();
+};
+
 //////////////// end of shortcuts /////////////////
 ///////////////////////////////////////////////////
