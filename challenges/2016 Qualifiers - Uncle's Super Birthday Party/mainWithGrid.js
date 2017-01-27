@@ -31,13 +31,14 @@ OUTPUT
 const abs = Math.abs;
 const min = Math.min;
 const max = Math.max;
+const w = 52;
+const h = 52;
 
 getInput(["i-N", "i-points[N]| "], main);
 
 function main() {
-    let [min, max] = getBounds();
-    points = points.map(p => [p[0] + 1 - min.x, p[1] + 1 - min.y]);
-    let grid = Grid.fromWH(max.x - min.x + 2, max.y - min.y + 2);
+    points = points.map(p => [p[0] + 1, p[1] + 1]);
+    let grid = Grid.fromWH(w, h);
     let [xSegs, ySegs, segs] = getSegments();
     segs.forEach(s => fillSeg(grid, s));
 

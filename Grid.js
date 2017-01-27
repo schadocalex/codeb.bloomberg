@@ -5,6 +5,18 @@ global.Grid = class {
         this.grid = grid;
     }
 
+    static fromWH(w, h, defaultValue = 0, Type = Uint8Array) {
+        var grid = new Array(w);
+        for(let x = 0; x < w; x++) {
+            grid[x] = new Type(h);
+            for(let y = 0; y < h; y++) {
+                grid[x][y] = defaultValue;
+            }
+        }
+
+        return new Grid(grid);
+    }
+
     static fromSparse(sparse, defaultValue = 0, Type = Uint8Array) {
         var grid = new Array(sparse.w);
         for(let x = 0; x < sparse.w; x++) {
