@@ -22,62 +22,12 @@ global.Grid = class {
         return new Grid(grid);
     }
 
-    getClusters(value) {
-        const clusters = [];
-
-        const availablePoints = new Set();
-        for(let x = 0; x < this.w; x++) {
-            for(let y = 0; y < this.h; y++) {
-                if(this.grid[x][y] === value) {
-                    availablePoints.add([x, y].toString());
-                }
-            }
-        }
-
-        while(availablePoints.size > 0) {
-            const sparse = new Sparse(this.w, this.h);
-            let pointsInCluster = [availablePoints.pop()];
-
-            while(pointsInCluster.length > 0) {
-                let [x, y] = pointsInCluster.pop().split(",");
-                sparse.add(new Point(x, y));
-                let neighbours = this.getNeighbours(x, y, { equals: value });
-                for(let neighbour of neighbours) {
-                    let n = neighbour.toString();
-                    if(!availablePoints.has(n)) {
-                        availablePoints.delete(n);
-                        pointsInCluster.push(n);
-                    }
-                }
-            }
-
-            clusters.push(sparse);
-        }
-
-        return clusters;
+    get(x, y) {
+        return this.grid[x][y];
     }
 
-    fill(x, y, value) {
-        if(this.grid[x][y] === value) {
-            return;
-        }
-
-        const pointsToDiscover = [[x, y]];
-        const closePoints = new Set();
-        closePoints.add(pointsToDiscover[0].toString());
-
-        while(pointsToDiscover.length > 0) {
-            const [x, y] = pointsToDiscover.shift();
-            this.grid[x][y] = value;
-
-            const neighbours = this.getNeighbours(x, y, { notEquals: value });
-            for(let neighbour of neighbours) {
-                if(!closePoints.has(neighbour.toString())) {
-                    closePoints.add(neighbour.toString());
-                    pointsToDiscover.push(neighbour);
-                }
-            }
-        }
+    set(x, y, value) {
+        this.grid[x][y] = value;
     }
 
     getClusters(value) {
@@ -115,7 +65,7 @@ global.Grid = class {
         return clusters;
     }
 
-    fill(x, y, value) {
+    fill(x, y, value, checkFn) {
         if(this.grid[x][y] === value) {
             return;
         }
@@ -128,7 +78,7 @@ global.Grid = class {
             const [x, y] = pointsToDiscover.shift();
             this.grid[x][y] = value;
 
-            const neighbours = this.getNeighbours(x, y, { notEquals: value });
+            const neighbours = this.getNeighbours(x, y, { notEquals: value, checkFn });
             for(let neighbour of neighbours) {
                 if(!closePoints.has(neighbour.toString())) {
                     closePoints.add(neighbour.toString());
@@ -150,7 +100,7 @@ global.Grid = class {
             {x: 1, y: 1}
         ];
 
-        const  neighbours = [];
+        const neighbours = [];
 
         for(let offset of offsets) {
             let x = parseInt(_x, 10) + offset.x;
@@ -158,7 +108,8 @@ global.Grid = class {
 
             if(x >= 0 && x < this.w && y >= 0 && y < this.h) {
                 if( (opt.equals === undefined || opt.equals === this.grid[x][y]) &&
-                    (opt.notEquals === undefined || opt.notEquals !== this.grid[x][y])) {
+                    (opt.notEquals === undefined || opt.notEquals !== this.grid[x][y]) &&
+                    (opt.checkFn === undefined || opt.checkFn(_x, _y, x, y))) {
                     neighbours.push([x, y]);
                 }
             }
@@ -170,6 +121,17 @@ global.Grid = class {
     draw() {
         console.log("\n");
         for(let y = 0; y < this.h; y++) {
+            var s = "";
+            for(let x = 0; x < this.w; x++) {
+                s += this.grid[x][y];
+            }
+            console.log(s);
+        }
+    }
+
+    drawMath() {
+        console.log("\n");
+        for(let y = this.h - 1; y >= 0; y--) {
             var s = "";
             for(let x = 0; x < this.w; x++) {
                 s += this.grid[x][y];

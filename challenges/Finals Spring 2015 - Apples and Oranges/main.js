@@ -31,71 +31,33 @@ eval(fs.readFileSync('../../algebre.js').toString());
 getInput(["| i-A i-O i-M i-X i-Y i-Mf"], main);
 
 function main() {
-    ///!!!!\ does not work /!!!!\\\
-    ///!!!!\ does not work /!!!!\\\
-    ///!!!!\ does not work /!!!!\\\
-    ///!!!!\ does not work /!!!!\\\
-    ///!!!!\ does not work /!!!!\\\
-    ///!!!!\ does not work /!!!!\\\
     M += A * X;
     M += O * Y;
     M -= Mf;
-    let [d, x1, y1] = euclid(X, Y);
-    if(M < 0 || M % d !== 0) {
-        exit();
+
+    let [pgcd,,] = euclid(X, Y);
+    let ppcm = X * Y / pgcd;
+    let q = Math.floor(M / ppcm);
+    let r = M % ppcm;
+    let coeff1 = coeff(X, Y, r);
+    let coeff2 = coeff(Y, X, r);
+    if(coeff1 === -1 || coeff2 === -1) {
+        console.log("Impossible");
     } else {
-        let solution = diophantineEquation(X/d, Y/d, M/d);
-        if(solution === null) {
-            exit();
-        } else {
-            let [x1, y1] = solution;
-            console.log((M - y1 * Y) / X, (M - x1 * X) / Y);
-        }
+        console.log((M - coeff1 * Y) / X, (M - coeff2 * X) / Y);
     }
 }
 
-// a*x + b*y = c
-function diophantineEquation(a, b, c) {
-    // if(a * b - 0.5 * (a - 1) * (b - 1) < 1) {
-    //     exit();
-    // }
-
-    let q = Math.floor(c / (a * b));
-    let r = c % (a * b);
-
-    // a*x1 + b*y1 = d in Z
-    let [d, x1, y1] = euclid(a, b);
-    // console.log(a+"*"+x1+" + "+b+"*"+y1+" = "+d);
-    // if(r % d !== 0) {
-    //     exit();
-    // }
-    // a*x2 + b*y2 = r in Z
-    let x2 = x1 * r / d;
-    let y2 = y1 * r / d;
-    // console.log(a+"*"+x2+" + "+b+"*"+y2+" = "+r);
-
-    // a*x3 + b*y3 = r in N
-    // a*x4 + b*y4 = r in N
-    let tmp = (a * y2 - b * x2) / (a*a+b*b);
-    let k1 = Math.floor(tmp);
-    let k2 = Math.ceil(tmp);
-    let x3 = x2 + b * k1;
-    let y3 = y2 - a * k1;
-    let x4 = x2 + b * k2;
-    let y4 = y2 - a * k2;
-    // console.log(a+"*"+x3+" + "+b+"*"+y3+" = "+r);
-    // console.log(a+"*"+x4+" + "+b+"*"+y4+" = "+r);
-
-    if(x3 >= 0 && y3 >= 0 && Math.floor(x3) === x3 && Math.floor(y3) === y3) {
-        return [x3, y3];
+// 2*max + b*min = r
+function coeff(a, b, r) {
+    let min = 0;
+    while(r > 0 && r % a !== 0) {
+        r -= b;
+        min++;
     }
-    if(x4 >= 0 && y4 >= 0 && Math.floor(x4) === x4 && Math.floor(y4) === y4) {
-        return [x4, y4];
+    if(r < 0) {
+        return -1;
+    } else {
+        return min;
     }
-
-    return null;
-}
-
-function exit() {
-    console.log(" Impossible ");
 }
