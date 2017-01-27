@@ -70,8 +70,8 @@ function bellmanford(nodes, source) {
     for(let i = 1; i < nodes.length; i++) {
         for(let u of nodes) {
             for(let v of u.neighbors) {
-                if(u.dist - 1 < v.dist) {
-                    v.dist = u.dist - 1;
+                if(u.dist + u.weight.get(v) < v.dist) {
+                    v.dist = u.dist + u.weight.get(v);
                     v.parent = u;
                     if (v.dist < min.dist) {
                         min = v;
